@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  # 1. Database Service (MySQL)
+  mysql-db:
+    image: mysql:8.0
+    # ... other config (ports, environment, volumes) ...
+    # You already have this part set up
+
+  # 2. Backend Service (e.g., Node.js/Express with Prisma)
+  backend:
+    build: 
+      context: ./backend # Path to your backend's Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      # Connects to the database using the service name 'mysql-db'
+      DATABASE_URL: mysql://my_user:my-secret-password@mysql-db:3306/my_prisma_db
+    depends_on:
+      - mysql-db
+    # This mounts your local code into the container for development
+    volumes:
+      - ./backend:/app
+
+  # 3. Frontend Service (React/Vite)
+  frontend:
+    build: 
+      context: ./frontend # Path to your frontend's Dockerfile
+    ports:
+      - "5173:5173" # Vite's default dev port
+    # Depends on the backend API being ready
+    depends_on:
+      - backend
+    # This is crucial for HMR (Hot Module Replacement)
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Important to prevent container node_modules being overwritten by host
+    command: npm run dev -- --host 0.0.0.0
