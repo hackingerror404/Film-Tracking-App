@@ -1,37 +1,32 @@
 version: '3.8'
 services:
   # 1. Database Service (MySQL)
-  mysql-db:
+  db:
     image: mysql:8.0
+    container_name: filmshoot-db
     # ... other config (ports, environment, volumes) ...
     # You already have this part set up
 
-  # 2. Backend Service (e.g., Node.js/Express with Prisma)
+  # 2. Backend Service (Uses the ./backend/Dockerfile)
   backend:
     build: 
-      context: ./backend # Path to your backend's Dockerfile
+      context: ./backend 
     ports:
       - "4000:4000"
     environment:
-      # Connects to the database using the service name 'mysql-db'
+      # Crucial: Uses the service name 'mysql-db' for internal networking
       DATABASE_URL: mysql://my_user:my-secret-password@mysql-db:3306/my_prisma_db
     depends_on:
       - mysql-db
-    # This mounts your local code into the container for development
     volumes:
       - ./backend:/app
 
-  # 3. Frontend Service (React/Vite)
+  # 3. Frontend Service (Uses the ./frontend/Dockerfile)
   frontend:
     build: 
-      context: ./frontend # Path to your frontend's Dockerfile
+      context: ./frontend 
+    # Maps host port 3000 to container port 80 (NGINX)
     ports:
-      - "5173:5173" # Vite's default dev port
-    # Depends on the backend API being ready
+      - "3000:80" 
     depends_on:
       - backend
-    # This is crucial for HMR (Hot Module Replacement)
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules # Important to prevent container node_modules being overwritten by host
-    command: npm run dev -- --host 0.0.0.0

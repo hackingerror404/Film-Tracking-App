@@ -1,0 +1,55 @@
+services:
+  frontend:
+    image: nginx:latest
+    container_name: frontend
+    restart: always
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    env_file:
+      - ./backend/.env.docker
+    expose:
+      - "5000"
+    depends_on:
+      - db
+    networks:
+      - app_network
+    volumes:
+      - ./backend:/app              # mount your code
+      - /app/node_modules           # keep container’s node_modules
+    working_dir: /app
+    command: npm run dev
+    # ports: #uncomment (or comment) these if running into an error with ports
+    #   - "5000:5000"
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    restart: always
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - db_data:/var/lib/mysql                  # persistent database
+      - ./db/init:/docker-entrypoint-initdb.d   # backup.sql runs first time
+    ports:
+      - "3307:3306"
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
+    driver: bridge
