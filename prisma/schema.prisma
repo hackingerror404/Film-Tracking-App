@@ -13,3 +13,69 @@ datasource db {
   provider = "mysql"
   //url      = env("DATABASE_URL")
 }
+
+model users {
+  user_id         Int         @id @default(autoincrement())
+  username        String      @unique @db.VarChar(60)
+  password        String      @db.VarChar(60)
+  first_name      String      @db.VarChar(60)
+  last_name       String      @db.VarChar(60)
+
+  user_crew_types user_crew_types[]
+}
+
+model crew_types {
+  crew_id         Int        @id @default(autoincrement())
+  crew_name       String     @db.VarChar(60)
+
+  user_crew_types             user_crew_types[]
+  shoot_crew_types_requested  shoot_crew_types_requested[]
+}
+
+model film_projects {
+  project_id        Int       @id @default(autoincrement())
+  project_name      String    @db.VarChar(100)
+  producer_company  String    @db.VarChar(60)
+  description       String    @db.VarChar(255)
+
+  film_shoots       film_shoots[]
+}
+
+model film_shoots {
+  shoot_id                  Int       @id @default(autoincrement())
+  project_id                Int
+  description               String    @db.VarChar(255)
+  location_street_address   String    @db.VarChar(100)
+  location_city             String    @db.VarChar(50)
+  location_state            String    @db.VarChar(4)
+  location_country          String    @db.VarChar(50)
+  start_time                DateTime
+  //crew_types_requested - can select as many as needed, including 0.
+
+  film_project              film_projects   @relation(fields: [project_id], references: [project_id])
+  crew_types_requested      shoot_crew_types_requested[]
+
+  @@index([project_id], map: "film_project_id_fkey")
+}
+
+model user_crew_types {
+  user_id     Int
+  crew_id     Int
+
+  user        users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  crew_type   crew_types @relation(fields: [crew_id], references: [crew_id], onDelete: Cascade)
+
+  @@id([user_id, crew_id])
+  @@index([crew_id])
+}
+
+model shoot_crew_types_requested {
+  shoot_id   Int
+  crew_id    Int
+  
+  film_shoot film_shoots @relation(fields: [shoot_id], references: [shoot_id], onDelete: Cascade)
+  crew_type  crew_types  @relation(fields: [crew_id], references: [crew_id], onDelete: Cascade)
+  
+  @@id([shoot_id, crew_id])
+  @@index([crew_id])
+}
