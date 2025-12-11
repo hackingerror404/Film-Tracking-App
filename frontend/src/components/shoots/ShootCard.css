@@ -1,0 +1,114 @@
+.shoot-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.shoot-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.shoot-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.shoot-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shoot-content {
+  padding: 24px;
+}
+
+.shoot-header {
+  margin-bottom: 12px;
+}
+
+.shoot-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.4rem;
+  color: white;
+}
+
+.producer {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.shoot-description {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 12px 0 20px 0;
+}
+
+.shoot-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.detail-icon {
+  font-size: 1.2rem;
+}
+
+.crew-types {
+  margin: 20px 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.crew-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.crew-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crew-tag {
+  padding: 6px 12px;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  color: #a5b4fc;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.shoot-address {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.shoot-address strong {
+  color: white;
+}
