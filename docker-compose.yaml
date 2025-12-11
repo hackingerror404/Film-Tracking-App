@@ -4,8 +4,19 @@ services:
   db:
     image: mysql:8.0
     container_name: filmshoot-db
-    # ... other config (ports, environment, volumes) ...
-    # You already have this part set up
+    restart: always
+    environment:
+      # These must match the credentials Prisma will use
+      MYSQL_ROOT_PASSWORD: my-secret-root-password 
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: username
+      MYSQL_PASSWORD: password
+    ports:
+      # Maps host port 3306 to container port 3306 (Optional, for local access)
+      - "3306:3306" 
+    volumes:
+      # Ensures data persists even if the container is stopped/removed
+      - mysql_data:/var/lib/mysql
 
   # 2. Backend Service (Uses the ./backend/Dockerfile)
   backend:
@@ -14,10 +25,11 @@ services:
     ports:
       - "4000:4000"
     environment:
-      # Crucial: Uses the service name 'mysql-db' for internal networking
-      DATABASE_URL: mysql://my_user:my-secret-password@mysql-db:3306/my_prisma_db
+      # Crucial: The host must be the Docker service name 'db', NOT 'localhost'
+      # The credentials must match what you set for the 'db' service (username, password, mydb)
+      DATABASE_URL: mysql://username:password@db:3306/mydb
     depends_on:
-      - mysql-db
+      - db # Depends on 'db', NOT 'mysql-db'
     volumes:
       - ./backend:/app
 
@@ -25,8 +37,11 @@ services:
   frontend:
     build: 
       context: ./frontend 
-    # Maps host port 3000 to container port 80 (NGINX)
     ports:
       - "3000:80" 
     depends_on:
       - backend
+
+# Define the volume outside of the services block
+volumes:
+  mysql_data:

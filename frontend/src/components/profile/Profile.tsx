@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
-import type { CrewType } from '../../lib/supabase';
+import type { CrewType } from '../../types/crewType';
 import './Profile.css';
+
+const API_URL = 'http://localhost:4000/api';
 
 export default function Profile() {
   const { profile, updateProfile } = useAuth();
@@ -10,6 +11,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
   const [crewTypes, setCrewTypes] = useState<CrewType[]>([]);
   const [userCrewTypes, setUserCrewTypes] = useState<number[]>([]);
 
@@ -35,12 +37,10 @@ export default function Profile() {
 
   async function loadCrewTypes() {
     try {
-      const { data, error } = await supabase
-        .from('crew_types')
-        .select('*')
-        .order('crew_name');
-
-      if (error) throw error;
+      const response = await fetch(`${API_URL}/crew-types`);
+      if (!response.ok) throw new Error('Failed to fetch crew types');
+      
+      const data = await response.json();
       setCrewTypes(data || []);
     } catch (error) {
       console.error('Error loading crew types:', error);
@@ -51,13 +51,12 @@ export default function Profile() {
     if (!profile) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_crew_types')
-        .select('crew_id')
-        .eq('user_id', profile.user_id);
+      const response = await fetch(`${API_URL}/users/${profile.user_id}/crew-types`);
+      if (!response.ok) throw new Error('Failed to fetch user skills');
 
-      if (error) throw error;
-      setUserCrewTypes(data.map(item => item.crew_id));
+      const data = await response.json();
+      // Backend returns array of objects like [{ crew_id: 1 }], we just want [1]
+      setUserCrewTypes(data.map((item: any) => item.crew_id));
     } catch (error) {
       console.error('Error loading user crew types:', error);
     }
@@ -75,23 +74,26 @@ export default function Profile() {
 
     try {
       if (userCrewTypes.includes(crewId)) {
-        const { error } = await supabase
-          .from('user_crew_types')
-          .delete()
-          .eq('user_id', profile.user_id)
-          .eq('crew_id', crewId);
+        // --- Remove Skill ---
+        const response = await fetch(`${API_URL}/users/${profile.user_id}/crew-types/${crewId}`, {
+          method: 'DELETE',
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to remove skill');
+        
+        // Update state locally
         setUserCrewTypes(userCrewTypes.filter(id => id !== crewId));
       } else {
-        const { error } = await supabase
-          .from('user_crew_types')
-          .insert({
-            user_id: profile.user_id,
-            crew_id: crewId,
-          });
+        // --- Add Skill ---
+        const response = await fetch(`${API_URL}/users/${profile.user_id}/crew-types`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ crew_id: crewId })
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to add skill');
+        
+        // Update state locally
         setUserCrewTypes([...userCrewTypes, crewId]);
       }
 
@@ -110,6 +112,8 @@ export default function Profile() {
     setSuccess('');
 
     try {
+      // Note: updateProfile is handled by AuthContext. 
+      // Ensure AuthContext is also updated to use the API/Prisma backend.
       const { error } = await updateProfile({
         username: formData.username,
         first_name: formData.firstName,
@@ -138,7 +142,7 @@ export default function Profile() {
       <div className="profile-card">
         <div className="profile-header">
           <div className="avatar">
-            {profile.first_name[0]}{profile.last_name[0]}
+            {profile.first_name?.[0]}{profile.last_name?.[0]}
           </div>
           <div className="profile-info">
             <h1>{profile.first_name} {profile.last_name}</h1>
